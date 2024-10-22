@@ -8,7 +8,7 @@
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
 
-#define API_KEY "AIzaSyB2OoT9iDo5D_jsezMQedViOSsGXYNMnIM"
+#define API_KEY ""
 #define DATABASE_URL "https://envoidb-424a8-default-rtdb.europe-west1.firebasedatabase.app/"
 
 FirebaseData fbdo;
@@ -31,14 +31,14 @@ DeviceAddress tempDeviceAddress;
 
 #define SMTP_HOST "smtp.gmail.com"
 #define SMTP_PORT 465
-#define AUTHOR_EMAIL "salajaona04@gmail.com"
-#define AUTHOR_PASSWORD "ghes knbv qwvg ycfr"
-#define RECIPIENT_EMAIL "fayolmanah@gmail.com"
+#define AUTHOR_EMAIL ""
+#define AUTHOR_PASSWORD ""
+#define RECIPIENT_EMAIL ""
 
 SMTPSession smtp;
 void smtpCallback(SMTP_Status status);
 
-bool emailSent = false;  // Drapeau pour indiquer si un email a été envoyé
+bool emailSent[2] = {false,false};  // Drapeau pour indiquer si un email a été envoyé
 
 float valeur_min = 0.0;
 float valeur_max = 0.0;
@@ -120,7 +120,7 @@ void loop(){
               Serial.println("valeur maximum: ");
               Serial.print(valeur_max);
               if(tempC < valeur_min || tempC > valeur_max){
-                if(!emailSent){
+                if(!emailSent[i]){
                     MailClient.networkReconnect(true);
                     smtp.debug(1);
                     smtp.callback(smtpCallback);
@@ -165,10 +165,10 @@ void loop(){
                     if (!MailClient.sendMail(&smtp, &message))
                         ESP_MAIL_PRINTF("Error, Status Code: %d, Error Code: %d, Reason: %s", smtp.statusCode(), smtp.errorCode(), smtp.errorReason().c_str());
                     }
-                    emailSent = true;
+                    emailSent[i] = true;
                 }
                 else{
-                    emailSent = false;
+                    emailSent[i] = false;
                 }
                  
               }

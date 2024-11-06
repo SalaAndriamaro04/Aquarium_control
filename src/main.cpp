@@ -5,10 +5,11 @@
 #include <Firebase_ESP_Client.h>
 #include <ESP_Mail_Client.h>
 
+#include "time.h"
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
 
-#define API_KEY ""
+#define API_KEY "AIzaSyB2OoT9iDo5D_jsezMQedViOSsGXYNMnIM"
 #define DATABASE_URL "https://envoidb-424a8-default-rtdb.europe-west1.firebasedatabase.app/"
 
 FirebaseData fbdo;
@@ -31,9 +32,9 @@ DeviceAddress tempDeviceAddress;
 
 #define SMTP_HOST "smtp.gmail.com"
 #define SMTP_PORT 465
-#define AUTHOR_EMAIL ""
-#define AUTHOR_PASSWORD ""
-#define RECIPIENT_EMAIL ""
+#define AUTHOR_EMAIL "salajaona04@gmail.com"
+#define AUTHOR_PASSWORD "ghes knbv qwvg ycfr"
+#define RECIPIENT_EMAIL "fayolmanah@gmail.com"
 
 SMTPSession smtp;
 void smtpCallback(SMTP_Status status);
@@ -43,10 +44,26 @@ bool emailSent[2] = {false,false};  // Drapeau pour indiquer si un email a été
 float valeur_min = 0.0;
 float valeur_max = 0.0;
 
+String parentPath;
+int timestamp;
+FirebaseJson json;
+const char* ntpServer = "pool.ntp.org";
+// Function that gets current epoch time
+unsigned long getTime() {
+  time_t now;
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    //Serial.println("Failed to obtain time");
+    return(0);
+  }
+  time(&now);
+  return now;
+}
+
 void setup(){
     Serial.begin(115200);
     delay(1000);
-
+ configTime(0, 0, ntpServer);
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     Serial.println("\nConnecting");
@@ -86,7 +103,10 @@ void setup(){
 
 void loop(){
   sensors.requestTemperatures();
-
+ //Get current timestamp
+            timestamp = getTime();
+            Serial.print ("time: ");
+            Serial.println (timestamp);
   for(int i = 0; i < numberOfDevices; i++) {
       if(sensors.getAddress(tempDeviceAddress, i)){
           Serial.print("Temperature for device: ");
@@ -95,15 +115,19 @@ void loop(){
           float tempC = sensors.getTempC(tempDeviceAddress);
           
           if (Firebase.ready() && signupOK){
-              String chemin = "aquarium/temper_eau_capt" + String(i);
-              if (Firebase.RTDB.setFloat(&fbdo, chemin.c_str(), tempC)){
-                  Serial.println("PASSED");
-                  Serial.println("PATH: " + fbdo.dataPath());
-                  Serial.println("TYPE: " + fbdo.dataType());
-              } else {
-                  Serial.println("FAILED");
-                  Serial.println("REASON: " + fbdo.errorReason());
-              }
+            String chemin = "/temper_eau_capt" + String(i);
+            parentPath = "aquarium/" + String(timestamp);
+            json.set(chemin.c_str(), String(tempC));
+              
+              if (Firebase.RTDB.setJSON(&fbdo, parentPath.c_str(), &json)) {
+                Serial.println("PASSED");
+                Serial.println("PATH: " + fbdo.dataPath());
+                Serial.println("TYPE: " + fbdo.dataType());
+                } else {
+                Serial.println("FAILED");
+                Serial.println("REASON: " + fbdo.errorReason());
+                }
+        
 
               Serial.println("Temp C: ");
               Serial.print(tempC);

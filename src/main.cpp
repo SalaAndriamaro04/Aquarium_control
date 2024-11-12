@@ -115,10 +115,18 @@ void loop(){
           float tempC = sensors.getTempC(tempDeviceAddress);
           
           if (Firebase.ready() && signupOK){
-            String chemin = "/temper_eau_capt" + String(i);
+            String chemin = "aquarium/temper_eau_capt" + String(i);
             parentPath = "aquarium/" + String(timestamp);
             json.set(chemin.c_str(), String(tempC));
-              
+              if (Firebase.RTDB.setFloat(&fbdo, chemin.c_str(), tempC)){
+                  Serial.println("PASSED");
+                  Serial.println("PATH: " + fbdo.dataPath());
+                  Serial.println("TYPE: " + fbdo.dataType());
+              } else {
+                  Serial.println("FAILED");
+                  Serial.println("REASON: " + fbdo.errorReason());
+              }
+
               if (Firebase.RTDB.setJSON(&fbdo, parentPath.c_str(), &json)) {
                 Serial.println("PASSED");
                 Serial.println("PATH: " + fbdo.dataPath());
@@ -127,8 +135,6 @@ void loop(){
                 Serial.println("FAILED");
                 Serial.println("REASON: " + fbdo.errorReason());
                 }
-        
-
               Serial.println("Temp C: ");
               Serial.print(tempC);
 
